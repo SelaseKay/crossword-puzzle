@@ -172,7 +172,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       final hightlightedWordsLen = newState.hightlightedWords.length;
       final wordsLen = newState.words?.length;
       if (wordsLen == hightlightedWordsLen) {
-        print("Show animation.......");
         _controllerCenter.play();
       }
     });
@@ -316,7 +315,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   }
 
   void selectItem(GlobalKey<State<StatefulWidget>> gridItemKey, var details,
-      List<List<String>> puzzle) {
+      List<List<String>> gridState) {
     RenderBox boxItem =
         gridItemKey.currentContext?.findRenderObject() as RenderBox;
     RenderBox boxMainGrid =
@@ -333,7 +332,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     int colIndex = ((details.globalPosition.dx - gridLeft) / boxItem.size.width)
         .floor()
         .toInt();
-    puzzle[rowIndex][colIndex] = "Y";
+    gridState[rowIndex][colIndex] = "Y";
 
     setState(() {});
   }
