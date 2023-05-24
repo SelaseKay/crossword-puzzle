@@ -78,6 +78,7 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
 
     state = Puzzle(
         grid: state.grid,
+        gridState: state.gridState,
         words: state.words,
         hightlightedWords: hightlightedWords.toList());
   }

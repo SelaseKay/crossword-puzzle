@@ -93,10 +93,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     if (_startIndexX == indexX || _startIndexY == indexY) {
       if (puzzleState.gridState[indexX][indexY] == "Y") {
         ref.read(puzzleProvider.notifier).setGridState(indexX, indexY, "");
-        // gridState[indexX][indexY] = "";
       } else {
         ref.read(puzzleProvider.notifier).setGridState(indexX, indexY, "Y");
-        // gridState[indexX][indexY] = "Y";
       }
       if (!listEquals(repeatedLetterIdx, indexes)) {
         _highlightedWord = _highlightedWord + puzzle[indexX][indexY];
@@ -106,25 +104,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         print("Hightlighted word is: ${_highlightedWord}");
         repeatedLetterIdx = indexes;
       }
-
       selectItem(gridItemKey, details, gridState);
     }
-    //   if (gridState[indexX][indexY] == "Y") {
-    //     gridState[indexX][indexY] = "";
-    //   } else {
-    //     gridState[indexX][indexY] = "Y";
-    //   }
-    //   if (!listEquals(repeatedLetterIdx, indexes)) {
-    //     _highlightedWord = _highlightedWord + puzzle[indexX][indexY];
-    //     ref
-    //         .read(letterPositionProvider.notifier)
-    //         .setHighlightedPositions(indexX, indexY);
-    //     print("Hightlighted word is: ${_highlightedWord}");
-    //     repeatedLetterIdx = indexes;
-    //   }
-
-    //   selectItem(gridItemKey, details, gridState);
-    // }
   }
 
   onDragEnd(puzzleState, x, y) {
@@ -135,34 +116,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       ref.read(puzzleProvider.notifier).addHighlightedWord(_highlightedWord);
       _highlightedWord = "";
       ref.read(letterPositionProvider.notifier).clearHighlightedPositions();
-      ref.read(puzzleProvider.notifier).setGridState(x, y, "Y");
+      // ref.read(puzzleProvider.notifier).setGridState(x, y, "Y");
     }
-  }
-
-  resetPuzzleTile() {
-    final letterPositions = ref.read(letterPositionProvider);
-    if (letterPositions != null) {
-      for (var letterPosition in letterPositions) {
-        gridState[letterPosition.x][letterPosition.y] = "";
-      }
-    }
-    setState(() {});
-  }
-
-  resetGrid() {
-    gridState = [
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-    ];
-    setState(() {});
   }
 
   void onDragStart(details, gridItemKey) {
@@ -195,8 +150,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         _controllerCenter.play();
       }
     });
-
-    ref.listen(letterPositionProvider, (oldState, newState) {});
 
     return Scaffold(
       appBar: AppBar(
