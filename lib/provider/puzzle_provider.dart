@@ -17,11 +17,24 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
     return _wordIndex++ % 4;
   }
 
+  void setGridState(row, col, value){
+    
+    state = Puzzle(
+      grid: state.grid,
+      hightlightedWords: state.hightlightedWords,
+      gridState: ,
+      words: state.words
+    );
+  }
+
   void addHighlightedWord(String word) {
+    final hightlightedWords = {...state.hightlightedWords, word};
+
+
     state = Puzzle(
         grid: state.grid,
         words: state.words,
-        hightlightedWords: [...state.hightlightedWords, word]);
+        hightlightedWords: hightlightedWords.toList());
   }
 
   void clearHighlightedWords() {

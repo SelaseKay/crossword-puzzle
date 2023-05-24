@@ -105,6 +105,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
       selectItem(gridItemKey, details, gridState);
     }
+    //   if (gridState[indexX][indexY] == "Y") {
+    //     gridState[indexX][indexY] = "";
+    //   } else {
+    //     gridState[indexX][indexY] = "Y";
+    //   }
+    //   if (!listEquals(repeatedLetterIdx, indexes)) {
+    //     _highlightedWord = _highlightedWord + puzzle[indexX][indexY];
+    //     ref
+    //         .read(letterPositionProvider.notifier)
+    //         .setHighlightedPositions(indexX, indexY);
+    //     print("Hightlighted word is: ${_highlightedWord}");
+    //     repeatedLetterIdx = indexes;
+    //   }
+
+    //   selectItem(gridItemKey, details, gridState);
+    // }
   }
 
   onDragEnd(puzzleState, x, y) {
