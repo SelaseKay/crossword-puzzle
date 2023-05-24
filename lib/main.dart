@@ -45,19 +45,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   GlobalKey gridKey = GlobalKey();
   late ConfettiController _controllerCenter;
 
-  List<List<String>> gridState = [
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-  ];
-
   int _startIndexX = 0;
   int _startIndexY = 0;
 
@@ -104,7 +91,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         print("Hightlighted word is: ${_highlightedWord}");
         repeatedLetterIdx = indexes;
       }
-      selectItem(gridItemKey, details, gridState);
+      selectItem(gridItemKey, details);
     }
   }
 
@@ -172,7 +159,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         // crossAxisSpacing: 4.0,
                         // mainAxisSpacing: 8.0,
                         children: List.generate(100, (index) {
-                          int gridStateLength = gridState.length;
+                          int gridStateLength = puzzleState.gridState.length;
 
                           int x, y = 0;
                           x = (index / gridStateLength).floor();
@@ -287,8 +274,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 
-  void selectItem(GlobalKey<State<StatefulWidget>> gridItemKey, var details,
-      List<List<String>> gridState) {
+  void selectItem(GlobalKey<State<StatefulWidget>> gridItemKey, var details) {
     RenderBox boxItem =
         gridItemKey.currentContext?.findRenderObject() as RenderBox;
     RenderBox boxMainGrid =
@@ -306,9 +292,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         .floor()
         .toInt();
     ref.read(puzzleProvider.notifier).setGridState(rowIndex, colIndex, "Y");
-    // gridState[rowIndex][colIndex] = "Y";
-
-    // setState(() {});
   }
 
   @override
