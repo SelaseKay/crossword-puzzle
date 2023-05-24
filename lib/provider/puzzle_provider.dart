@@ -4,6 +4,8 @@ import 'package:crossword_puzzle/data/word_list.dart';
 import 'package:crossword_puzzle/model/puzzle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'letter_position_provider.dart';
+
 final puzzleProvider =
     StateNotifierProvider<PuzzleNotifier, Puzzle>((ref) => PuzzleNotifier(ref));
 
@@ -17,19 +19,62 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
     return _wordIndex++ % 4;
   }
 
-  void setGridState(row, col, value){
-    
+  List<List<String>> _deepCopy(List<List<String>> source) {
+    return source.map((e) => e.toList()).toList();
+  }
+
+  void setGridState(row, col, value) {
+    final gridState = _deepCopy(state.gridState);
+
+    gridState[row][col] = value;
+
+    state = Puzzle(
+        grid: state.grid,
+        hightlightedWords: state.hightlightedWords,
+        gridState: gridState,
+        words: state.words);
+  }
+
+  void resetGridItemState() {
+    final letterPositions = ref.read(letterPositionProvider);
+    if (letterPositions != null) {
+      for (var letterPosition in letterPositions) {
+        final gridState = _deepCopy(state.gridState);
+
+        gridState[letterPosition.x][letterPosition.y] = "";
+
+        state = Puzzle(
+          grid: state.grid,
+          hightlightedWords: state.hightlightedWords,
+          gridState: gridState,
+          words: state.words,
+        );
+      }
+    }
+  }
+
+  void resetGridState() {
     state = Puzzle(
       grid: state.grid,
       hightlightedWords: state.hightlightedWords,
-      gridState: ,
-      words: state.words
+      gridState: [
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+      ],
+      words: state.words,
     );
   }
 
   void addHighlightedWord(String word) {
     final hightlightedWords = {...state.hightlightedWords, word};
-
 
     state = Puzzle(
         grid: state.grid,

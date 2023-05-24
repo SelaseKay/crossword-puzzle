@@ -88,11 +88,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     final indexX = indexes[0];
     final indexY = indexes[1];
 
+    final puzzleState = ref.read(puzzleProvider);
+
     if (_startIndexX == indexX || _startIndexY == indexY) {
-      if (gridState[indexX][indexY] == "Y") {
-        gridState[indexX][indexY] = "";
+      if (puzzleState.gridState[indexX][indexY] == "Y") {
+        ref.read(puzzleProvider.notifier).setGridState(indexX, indexY, "");
+        // gridState[indexX][indexY] = "";
       } else {
-        gridState[indexX][indexY] = "Y";
+        ref.read(puzzleProvider.notifier).setGridState(indexX, indexY, "Y");
+        // gridState[indexX][indexY] = "Y";
       }
       if (!listEquals(repeatedLetterIdx, indexes)) {
         _highlightedWord = _highlightedWord + puzzle[indexX][indexY];
@@ -126,12 +130,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   onDragEnd(puzzleState, x, y) {
     if (!puzzleState.words!.contains(_highlightedWord)) {
       _highlightedWord = "";
-      resetPuzzleTile();
+      ref.read(puzzleProvider.notifier).resetGridItemState();
     } else {
       ref.read(puzzleProvider.notifier).addHighlightedWord(_highlightedWord);
       _highlightedWord = "";
       ref.read(letterPositionProvider.notifier).clearHighlightedPositions();
-      gridState[x][y] = "Y";
+      ref.read(puzzleProvider.notifier).setGridState(x, y, "Y");
     }
   }
 
@@ -246,7 +250,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                             child: Container(
                               key: gridItemKey,
                               decoration: BoxDecoration(
-                                color: gridState[x][y] == ""
+                                color: puzzleState.gridState[x][y] == ""
                                     ? Colors.amber
                                     : Colors.blue,
                                 boxShadow: const [
@@ -317,7 +321,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           ref
                               .read(letterPositionProvider.notifier)
                               .clearHighlightedPositions();
-                          resetGrid();
+                          ref.read(puzzleProvider.notifier).resetGridState();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
@@ -348,9 +352,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     int colIndex = ((details.globalPosition.dx - gridLeft) / boxItem.size.width)
         .floor()
         .toInt();
-    gridState[rowIndex][colIndex] = "Y";
+    ref.read(puzzleProvider.notifier).setGridState(rowIndex, colIndex, "Y");
+    // gridState[rowIndex][colIndex] = "Y";
 
-    setState(() {});
+    // setState(() {});
   }
 
   @override
