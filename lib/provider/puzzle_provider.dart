@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:crossword_puzzle/data/word_list.dart';
+import 'package:crossword_puzzle/model/grid_item.dart';
 import 'package:crossword_puzzle/model/puzzle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,58 +20,30 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
     return _wordIndex++ % 4;
   }
 
-  List<List<String>> _deepCopy(List<List<String>> source) {
-    return source.map((e) => e.toList()).toList();
-  }
-
   void setGridState(row, col, value) {
-    final gridState = _deepCopy(state.gridState);
+    final grid = [...state.grid!];
 
-    gridState[row][col] = value;
+    grid[row][col].isSelected = value;
 
     state = Puzzle(
         grid: state.grid,
         hightlightedWords: state.hightlightedWords,
-        gridState: gridState,
         words: state.words);
   }
 
   void resetGridItemState() {
     final letterPositions = ref.read(letterPositionProvider);
     if (letterPositions != null) {
+      final grid = [...state.grid!];
       for (var letterPosition in letterPositions) {
-        final gridState = _deepCopy(state.gridState);
-
-        gridState[letterPosition.x][letterPosition.y] = "";
-
+        grid[letterPosition.x][letterPosition.y].isSelected = false;
         state = Puzzle(
           grid: state.grid,
           hightlightedWords: state.hightlightedWords,
-          gridState: gridState,
           words: state.words,
         );
       }
     }
-  }
-
-  void resetGridState() {
-    state = Puzzle(
-      grid: state.grid,
-      hightlightedWords: state.hightlightedWords,
-      gridState: [
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-        ["", "", "", "", "", "", "", "", "", ""],
-      ],
-      words: state.words,
-    );
   }
 
   void addHighlightedWord(String word) {
@@ -78,7 +51,6 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
 
     state = Puzzle(
         grid: state.grid,
-        gridState: state.gridState,
         words: state.words,
         hightlightedWords: hightlightedWords.toList());
   }
@@ -88,7 +60,8 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
   }
 
   void generateWordSearch({int gridSize = 10}) {
-    List<List<String>> grid = _createEmptyGrid(gridSize);
+    List<List<GridItem>> grid = _createEmptyGrid(gridSize);
+
     final words = WordList.words[_getWordIndex];
 
     // Place words in the grid
@@ -117,13 +90,17 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
     clearHighlightedWords();
   }
 
-  List<List<String>> _createEmptyGrid(int size) {
-    return List<List<String>>.generate(
-        size, (_) => List<String>.filled(size, ''));
+  List<List<GridItem>> _createEmptyGrid(int size) {
+    return List<List<GridItem>>.generate(
+        size,
+        (_) => List.generate(
+              size,
+              (_) => GridItem(letter: ""),
+            ));
   }
 
   bool _canPlaceWord(
-      List<List<String>> grid, String word, int row, int col, int direction) {
+      List<List<GridItem>> grid, String word, int row, int col, int direction) {
     int len = word.length;
     int gridSize = grid.length;
 
@@ -144,8 +121,8 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
       int currentRow = row + i * dRow;
       int currentCol = col + i * dCol;
 
-      if (grid[currentRow][currentCol] != '') {
-        if (grid[currentRow][currentCol] != word[i]) {
+      if (grid[currentRow][currentCol].letter != "") {
+        if (grid[currentRow][currentCol].letter != word[i]) {
           return false;
         }
       }
@@ -155,7 +132,7 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
   }
 
   void _placeWord(
-      List<List<String>> grid, String word, int row, int col, int direction) {
+      List<List<GridItem>> grid, String word, int row, int col, int direction) {
     int len = word.length;
 
     // Calculate the change in row and column for the given direction
@@ -166,19 +143,19 @@ class PuzzleNotifier extends StateNotifier<Puzzle> {
       int currentRow = row + i * dRow;
       int currentCol = col + i * dCol;
 
-      grid[currentRow][currentCol] = word[i];
+      grid[currentRow][currentCol].letter = word[i];
     }
   }
 
-  void _fillEmptySpaces(List<List<String>> grid) {
+  void _fillEmptySpaces(List<List<GridItem>> grid) {
     int gridSize = grid.length;
 
     for (int row = 0; row < gridSize; row++) {
       for (int col = 0; col < gridSize; col++) {
-        if (grid[row][col] == '') {
+        if (grid[row][col].letter.isEmpty) {
           // Generate random letter
           String randomLetter = String.fromCharCode(Random().nextInt(26) + 65);
-          grid[row][col] = randomLetter;
+          grid[row][col].letter = randomLetter;
         }
       }
     }
