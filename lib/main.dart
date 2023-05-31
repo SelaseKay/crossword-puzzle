@@ -45,27 +45,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   GlobalKey gridKey = GlobalKey();
   late ConfettiController _controllerCenter;
 
-  List<List<String>> gridState = [
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-  ];
-
-  int _startIndexX = 0;
-  int _startIndexY = 0;
+  int _startRow = 0;
+  int _startCol = 0;
 
   String _highlightedWord = "";
 
   List<int> repeatedLetterIdx = [];
 
-  List<int> _getIndexs(details, gridItemKey) {
+  List<int> _getSelectedGridItemIdxs(details, gridItemKey) {
     RenderBox box = gridItemKey.currentContext?.findRenderObject() as RenderBox;
     RenderBox boxGrid = gridKey.currentContext?.findRenderObject() as RenderBox;
     Offset position =
@@ -76,79 +63,50 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     double gridPosition = details.globalPosition.dy - gridTop;
 
     //Get item position
-    int indexX = (gridPosition / box.size.width).floor().toInt();
-    int indexY = ((details.globalPosition.dx - gridLeft) / box.size.width)
+    int row = (gridPosition / box.size.width).floor().toInt();
+    int col = ((details.globalPosition.dx - gridLeft) / box.size.width)
         .floor()
         .toInt();
-    return [indexX, indexY];
+    return [row, col];
   }
 
-  void onDragUpdate(details, gridItemKey, puzzle) {
-    final indexes = _getIndexs(details, gridItemKey);
-    final indexX = indexes[0];
-    final indexY = indexes[1];
+  void onDragUpdate(details, gridItemKey) {
+    final indexes = _getSelectedGridItemIdxs(details, gridItemKey);
+    final row = indexes[0];
+    final col = indexes[1];
 
-    if (_startIndexX == indexX || _startIndexY == indexY) {
-      if (gridState[indexX][indexY] == "Y") {
-        gridState[indexX][indexY] = "";
-      } else {
-        gridState[indexX][indexY] = "Y";
-      }
+    final puzzleState = ref.read(puzzleProvider);
+
+    if (_startRow == row || _startCol == col) {//condition to restrict drag in only on direction
+      ref.read(puzzleProvider.notifier).setGridState(row, col, true);
       if (!listEquals(repeatedLetterIdx, indexes)) {
-        _highlightedWord = _highlightedWord + puzzle[indexX][indexY];
+        _highlightedWord =
+            _highlightedWord + puzzleState.grid![row][col].letter;
         ref
             .read(letterPositionProvider.notifier)
-            .setHighlightedPositions(indexX, indexY);
+            .setHighlightedPositions(row, col);
         print("Hightlighted word is: ${_highlightedWord}");
         repeatedLetterIdx = indexes;
       }
-
-      selectItem(gridItemKey, details, gridState);
+      selectItem(gridItemKey, details);
     }
   }
 
-  onDragEnd(puzzleState, x, y) {
+  onDragEnd(puzzleState) {
     if (!puzzleState.words!.contains(_highlightedWord)) {
       _highlightedWord = "";
-      resetPuzzleTile();
+      ref.read(puzzleProvider.notifier).resetGridItemState();
     } else {
       ref.read(puzzleProvider.notifier).addHighlightedWord(_highlightedWord);
       _highlightedWord = "";
       ref.read(letterPositionProvider.notifier).clearHighlightedPositions();
-      gridState[x][y] = "Y";
     }
-  }
-
-  resetPuzzleTile() {
-    final letterPositions = ref.read(letterPositionProvider);
-    if (letterPositions != null) {
-      for (var letterPosition in letterPositions) {
-        gridState[letterPosition.x][letterPosition.y] = "";
-      }
-    }
-    setState(() {});
-  }
-
-  resetGrid() {
-    gridState = [
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", "", "", ""],
-    ];
-    setState(() {});
   }
 
   void onDragStart(details, gridItemKey) {
-    final indexes = _getIndexs(details, gridItemKey);
-    _startIndexX = indexes[0];
-    _startIndexY = indexes[1];
+    final indexes = _getSelectedGridItemIdxs(details, gridItemKey);
+    _startRow = indexes[0];
+    _startCol = indexes[1];
   }
 
   @override
@@ -176,8 +134,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       }
     });
 
-    ref.listen(letterPositionProvider, (oldState, newState) {});
-
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -194,12 +150,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     children: [
                       GridView.count(
                         key: gridKey,
+                        shrinkWrap: true,
                         crossAxisCount: 10,
                         padding: const EdgeInsets.all(8.0),
                         // crossAxisSpacing: 4.0,
                         // mainAxisSpacing: 8.0,
                         children: List.generate(100, (index) {
-                          int gridStateLength = gridState.length;
+                          int gridStateLength = puzzleState.grid!.length;
 
                           int x, y = 0;
                           x = (index / gridStateLength).floor();
@@ -214,25 +171,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               onDragStart(details, gridItemKey);
                             },
                             onHorizontalDragUpdate: (details) {
-                              onDragUpdate(
-                                  details, gridItemKey, puzzleState.grid);
+                              onDragUpdate(details, gridItemKey);
                             },
                             onVerticalDragUpdate: (details) {
-                              onDragUpdate(
-                                  details, gridItemKey, puzzleState.grid);
+                              onDragUpdate(details, gridItemKey);
                             },
                             onHorizontalDragEnd: (details) {
-                              onDragEnd(puzzleState, x, y);
+                              onDragEnd(puzzleState);
                             },
                             onVerticalDragEnd: (details) {
-                              onDragEnd(puzzleState, x, y);
+                              onDragEnd(puzzleState);
                             },
                             child: Container(
                               key: gridItemKey,
                               decoration: BoxDecoration(
-                                color: gridState[x][y] == ""
-                                    ? Colors.amber
-                                    : Colors.blue,
+                                color: puzzleState.grid![x][y].isSelected
+                                    ? Colors.blue
+                                    : Colors.amber,
                                 boxShadow: const [
                                   BoxShadow(
                                       color: Colors.white, //New
@@ -248,7 +203,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                     ? Text(
                                         puzzleState.grid!
                                             .expand((element) => element)
-                                            .toList()[index],
+                                            .toList()[index]
+                                            .letter,
                                         style: Theme.of(context)
                                             .textTheme
                                             .headlineSmall,
@@ -301,7 +257,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           ref
                               .read(letterPositionProvider.notifier)
                               .clearHighlightedPositions();
-                          resetGrid();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
@@ -314,27 +269,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 
-  void selectItem(GlobalKey<State<StatefulWidget>> gridItemKey, var details,
-      List<List<String>> gridState) {
-    RenderBox boxItem =
-        gridItemKey.currentContext?.findRenderObject() as RenderBox;
-    RenderBox boxMainGrid =
-        gridKey.currentContext?.findRenderObject() as RenderBox;
-    Offset position =
-        boxMainGrid.localToGlobal(Offset.zero); //this is global position
-    double gridLeft = position.dx;
-    double gridTop = position.dy;
-
-    double gridPosition = details.globalPosition.dy - gridTop;
-
+  void selectItem(GlobalKey<State<StatefulWidget>> gridItemKey, var details) {
     //Get item position
-    int rowIndex = (gridPosition / boxItem.size.width).floor().toInt();
-    int colIndex = ((details.globalPosition.dx - gridLeft) / boxItem.size.width)
-        .floor()
-        .toInt();
-    gridState[rowIndex][colIndex] = "Y";
-
-    setState(() {});
+    final gridItemIdxs = _getSelectedGridItemIdxs(details, gridItemKey);
+    int rowIndex = gridItemIdxs[0];
+    int colIndex = gridItemIdxs[1];
+    ref.read(puzzleProvider.notifier).setGridState(rowIndex, colIndex, true);
   }
 
   @override
