@@ -100,7 +100,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       ref.read(puzzleProvider.notifier).addHighlightedWord(_highlightedWord);
       _highlightedWord = "";
       ref.read(letterPositionProvider.notifier).clearHighlightedPositions();
-      // ref.read(puzzleProvider.notifier).setGridState(x, y, "Y");
     }
   }
 
